@@ -1,23 +1,13 @@
 from selenium import webdriver
+import pandas as pd
 from selenium.webdriver import ActionChains, Keys
 from selenium.webdriver.common.by import By
 import time
 import re # Import the regular expression module
 
 def scroll_to_top(driver):
-    element = driver.find_element(By.CLASS_NAME, 'scrollable-thumb')
     element = driver.find_element(By.XPATH, '//*[@id="column-center"]/div/div/div[3]/div[2]/div[2]/section/div[4]')
-    # # "//*[@id='column-center']")
     driver.execute_script("arguments[0].scrollIntoView(true);", element)
-    # driver.execute_script("window.scrollBy(0,-500);")
-    # element = driver.find_element_by_id("your_element_id_here")  # Replace "your_element_id_here" with the ID of your element
-    #
-    # # Create an ActionChains object
-    # actions = ActionChains(driver)
-    #
-    # # Click, hold, and move the element up by a few pixels
-    # actions.move_to_element(element).click_and_hold(element).move_by_offset(0, -50).release().perform()
-
 # Keep track of processed messages using a set
 processed_messages = set()
 
@@ -25,28 +15,24 @@ processed_messages = set()
 def capture_messages():
     # Replace 'your_website_url' with the actual URL of the website
     url = 'https://web.telegram.org/k/#@team_shadow_current'
-
-
-
     # Set up Chrome driver (you may need to download chromedriver.exe and specify its path)
     driver = webdriver.Chrome()
-
     # Navigate to the website
     driver.get(url)
-
+    dataframe = pd.DataFrame(columns=["mid", "sender", "timestamp", "content"])
     # Allow some time for dynamic content to load (you may need to adjust this)
     time.sleep(43)
     while True:
         # Extract messages based on HTML structure using Selenium
         messages = driver.find_elements(By.CLASS_NAME, 'bubbles-group')  # Adjust based on actual HTML structure
-
         print(len(messages))
         # Process each message
         for message in messages:
-
-            message = message.get_attribute('innerHTML')
+            try:
+                message = message.get_attribute('innerHTML')
+            except Exception:
+                continue
             message_id = re.search(r'<div data-mid="(\d+)"', message).group(1)
-
             # Extract unique identifier for the message (e.g., message ID or timestamp)
             # Check if the message has already been processed
             if message_id not in processed_messages:
@@ -69,23 +55,20 @@ def capture_messages():
                 timestamp = re.search(r'data-timestamp="(\d+)"', message).group(1)
                 # Record the message in your desired storage solution
                 record_message(message_id, message_text, sender, timestamp)
-
+                message_info = {
+                    'mid': message_id,
+                    'sender': sender,
+                    'timestamp': timestamp,
+                    'content': message_text
+                }
+                dataframe = dataframe.append(message_info, ignore_index=True)
+                dataframe = dataframe.sort_values(by='mid')
                 # Add the message ID to the set of processed messages
                 processed_messages.add(message_id)
         time.sleep(1)
         scroll_to_top(driver)
-        # last_height = driver.execute_script("return document.body.scrollHeight")
-        # while True:
-        #     driver.execute_script("window.scrollTo(0,document.body.scrollHeight);")
-        #     time.sleep(0.5)
-        #     new_height = driver.execute_script("return document.body.scrollHeight")
-        #     if new_height == last_height:
-        #         break
-        #
-        #     last_height = new_height
+        dataframe.to_csv("messages.csv", index=False)
         time.sleep(5)
-        # Close the browser
-    driver.quit()
 
 # Function to record messages (replace with your actual implementation)
 def record_message(message_id, message_text, sender, timestamp):
