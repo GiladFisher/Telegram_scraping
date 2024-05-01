@@ -1,5 +1,7 @@
 from selenium import webdriver
+from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 import time
 import random
 import string
@@ -11,29 +13,28 @@ def generate_random_message():
     return message
 
 # Function to send a random message in the chat
+# //*[@id="column-center"]/div/div/div[4]/div/div[4]/button[1]
 def send_random_message(driver):
     message = generate_random_message()
-    input_box = driver.find_element(By.XPATH, '//div[@class="composer_rich_textarea"]')
-    input_box.send_keys(message)
-    input_box.send_keys('\n')
+    input_box = driver.find_element(By.XPATH, '//*[@id="column-center"]/div/div/div[4]/div/div[4]/button[1]')
+
+    # Simulate typing the message using ActionChains
+    ActionChains(driver).click(input_box).send_keys(message).perform()
+    # Simulate pressing Enter key
+    ActionChains(driver).send_keys(Keys.ENTER).perform()
 
 # Function to scroll to the bottom of the chat window
-def scroll_to_bottom(driver):
-    # This is just an example XPath, adjust it based on your chat window structure
-    scrollable_div = driver.find_element(By.XPATH, '//div[@class="history"]')
-    driver.execute_script("arguments[0].scrollTo(0, arguments[0].scrollHeight);", scrollable_div)
 
 # Main function to simulate sending random messages
 def simulate_random_messages():
-    url = 'https://web.telegram.org/k/#6983010885'  # Replace with your chat URL
+    url = 'https://web.telegram.org/k/#-2083791908'  # Replace with your chat URL
     driver = webdriver.Chrome()
     driver.get(url)
-    time.sleep(10)  # Allow time for the page to load
+    time.sleep(25)  # Allow time for the page to load
 
     while True:
         send_random_message(driver)
         time.sleep(random.uniform(2, 5))  # Random time interval between messages
-        scroll_to_bottom(driver)  # Scroll to bottom after sending each message
 
 # Run the script
 simulate_random_messages()
