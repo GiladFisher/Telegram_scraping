@@ -1,3 +1,5 @@
+import sys
+
 from selenium import webdriver
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
@@ -5,6 +7,7 @@ from selenium.webdriver.common.keys import Keys
 import time
 import random
 import string
+import csv
 
 # Function to generate a random message
 def generate_random_message():
@@ -22,6 +25,13 @@ def send_random_message(driver):
     ActionChains(driver).click(input_box).send_keys(message).perform()
     # Simulate pressing Enter key
     ActionChains(driver).send_keys(Keys.ENTER).perform()
+    epoch_time = time.time()
+    # Record the message size and time
+    size = sys.getsizeof(message)
+    with open(filename, mode='a', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow([epoch_time, size])
+        file.close()
 
 # Function to scroll to the bottom of the chat window
 
@@ -37,4 +47,17 @@ def simulate_random_messages():
         time.sleep(random.uniform(2, 5))  # Random time interval between messages
 
 # Run the script
+# create a new csv file
+currtime = time.strftime("%Y%m%d-%H%M%S")
+filename = "telegram_messages" + currtime + ".csv"
+with open(filename, mode='w', newline='') as file:
+    # Create a CSV writer object
+    writer = csv.writer(file)
+
+    # Write the header row
+    header = ["time", "size"]
+    writer.writerow(header)
+
+    # close the file
+    file.close()
 simulate_random_messages()
