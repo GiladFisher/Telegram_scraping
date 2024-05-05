@@ -55,7 +55,8 @@ def generate_random_message():
     if rand_num < text_prob:
         return generate_random_text()
     elif rand_num < text_prob + image_prob:
-        return load_random_noise_image_to_clipboard()
+        load_random_noise_image_to_clipboard()
+        return None
     # elif rand_num < text_prob + image_prob + video_prob:
     #     return generate_random_video()
     # else:
@@ -72,7 +73,7 @@ def send_random_message(driver):
     message = generate_random_message()
     input_box = driver.find_element(By.XPATH, '//*[@id="column-center"]/div/div/div[4]/div/div[4]/button[1]')
 
-    if type(message) == str:
+    if message is not None:
         # Simulate typing the message using ActionChains
         ActionChains(driver).click(input_box).key_down(Keys.CONTROL).send_keys('a').send_keys(Keys.BACKSPACE).key_up(Keys.CONTROL).send_keys(message).send_keys(Keys.ENTER).perform()
     else:
