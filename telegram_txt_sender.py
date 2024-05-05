@@ -1,6 +1,7 @@
 import os
 import sys
 import cv2
+from gtts import gTTS
 from selenium import webdriver
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
@@ -10,6 +11,16 @@ import random
 import string
 import csv
 import numpy as np
+
+message_type = ''
+message_size = 0
+def load_random_voice_message_to_clipboard():
+    message = generate_random_text()
+    tts = gTTS(text=message, lang='en')
+    voice_path = 'random_message.mp3'
+    tts.save(voice_path)
+    command = f"powershell Set-Clipboard -LiteralPath {voice_path}"
+    os.system(command)
 
 def load_random_noise_image_to_clipboard():
     # Define target average size in bytes
@@ -42,6 +53,7 @@ def load_random_noise_image_to_clipboard():
 
 # Function to generate a random message
 def generate_random_message():
+    global message_type
     # Define probabilities for each type of message
     text_prob = 0.294  # Probability of generating a text message
     image_prob = 0.48  # Probability of generating an image
@@ -53,12 +65,19 @@ def generate_random_message():
 
     # Generate and return the corresponding content based on the randomly chosen type
     if rand_num < text_prob:
+        message_type = 'text'
         return generate_random_text()
+
     elif rand_num < text_prob + image_prob:
+        message_type = 'image'
         load_random_noise_image_to_clipboard()
         return None
-    # elif rand_num < text_prob + image_prob + video_prob:
-    #     return generate_random_video()
+
+    elif rand_num < text_prob + image_prob + voice_prob:
+        message_type = 'voice'
+        load_random_voice_message_to_clipboard()
+        return None
+
     # else:
     #     return generate_random_voice_recording()
 
@@ -70,6 +89,7 @@ def generate_random_text():
 # Function to send a random message in the chat
 # //*[@id="column-center"]/div/div/div[4]/div/div[4]/button[1]
 def send_random_message(driver):
+    global message_type
     message = generate_random_message()
     input_box = driver.find_element(By.XPATH, '//*[@id="column-center"]/div/div/div[4]/div/div[4]/button[1]')
 
@@ -86,7 +106,7 @@ def send_random_message(driver):
     size = sys.getsizeof(message)
     with open(filename, mode='a', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow([epoch_time, size])
+        writer.writerow([epoch_time, size, message_type])
         file.close()
 
 # Function to scroll to the bottom of the chat window
@@ -111,7 +131,7 @@ with open(filename, mode='w', newline='') as file:
     writer = csv.writer(file)
 
     # Write the header row
-    header = ["time", "size"]
+    header = ["time", "size", "message_type"]
     writer.writerow(header)
 
     # close the file
