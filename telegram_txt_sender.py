@@ -89,7 +89,7 @@ def generate_random_message():
     global message_type
     # Define probabilities for each type of message
     text_prob = 0.356  # Probability of generating a text message
-    image_prob = 0.581  # Probability of generating an image
+    image_prob = 0.481  # Probability of generating an image
     video_prob = 0.113  # Probability of generating a video
     voice_prob = 0.061  # Probability of generating a voice recording
 
@@ -119,7 +119,7 @@ def generate_random_message():
 
 def generate_random_text():
     global message_size
-    message_length = min(round(random.expovariate(1/20)), 120)  # Random message length
+    message_length = max(min(round(random.expovariate(1/20)), 1120), 1)  # Random message length
     message = ''.join(random.choices(string.ascii_letters + string.digits, k=message_length))
     message_size = sys.getsizeof(message)
     return message
