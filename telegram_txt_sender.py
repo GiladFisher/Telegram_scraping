@@ -45,6 +45,7 @@ def load_random_video_to_clipboard():
 def load_random_voice_message_to_clipboard():
     global message_size
     message = generate_random_text()
+    print(message)
     tts = gTTS(text=message, lang='en')
     voice_path = 'random_message.mp3'
     tts.save(voice_path)
@@ -83,15 +84,27 @@ def load_random_noise_image_to_clipboard():
     command = f"powershell Set-Clipboard -LiteralPath {image_path}"
     os.system(command)
 
+def load_random_file_to_clipboard(mean_size):
+    std = mean_size / 2
+    message_size = -1
+    file_path = 'random_file.bin'
+    while message_size < 0:
+        message_size = int(np.random.normal(mean_size, std) * 1024**2)
+
+    with open(file_path, 'wb') as file:
+        file.write(os.urandom(message_size))
+    command = f"powershell Set-Clipboard -LiteralPath {file_path}"
+    os.system(command)
 
 # Function to generate a random message
 def generate_random_message():
     global message_type
     # Define probabilities for each type of message
-    text_prob = 0.356  # Probability of generating a text message
-    image_prob = 0.481  # Probability of generating an image
-    video_prob = 0.113  # Probability of generating a video
-    voice_prob = 0.061  # Probability of generating a voice recording
+    text_prob = 0.29  # Probability of generating a text message
+    image_prob = 0.48 # Probability of generating an image
+    video_prob = 0.15  # Probability of generating a video
+    voice_prob = 0.05 # Probability of generating a voice recording
+    file_prob = 0.02  # Probability of generating
 
     # Generate a random number to determine the type of message
     rand_num = random.random()
@@ -99,32 +112,34 @@ def generate_random_message():
     # Generate and return the corresponding content based on the randomly chosen type
     if rand_num < text_prob:
         message_type = 'text'
-        return generate_random_text()
+        mean_size = 306.61 / (1024**2)  # 306 B in MB
 
     elif rand_num < text_prob + image_prob:
         message_type = 'image'
-        load_random_noise_image_to_clipboard()
-        return None
+        mean_size = 91.33 / (1024)
 
     elif rand_num < text_prob + image_prob + voice_prob:
         message_type = 'voice'
-        load_random_voice_message_to_clipboard()
-        return None
+        mean_size = 4.4 # 0.5 MB in bytes
+
+    elif rand_num < text_prob + image_prob + voice_prob + file_prob:
+        message_type = 'file'
+        mean_size = 52.56 / 1024 # 52.56 KB in MB
+
     else:
         message_type = 'video'
-        load_random_video_to_clipboard()
-        return None
+        mean_size = 35.49 # 35.49 MB
 
-
+    load_random_file_to_clipboard(mean_size)
+    return None
 
 def generate_random_text():
     global message_size
-    message_length = max(min(round(random.expovariate(1/20)), 1120), 1)  # Random message length
+    message_length = max(min(round(random.expovariate(1/20) + 80), 1120), 1)  # Random message length
     message = ''.join(random.choices(string.ascii_letters + string.digits, k=message_length))
     message_size = sys.getsizeof(message)
     return message
 # Function to send a random message in the chat
-# //*[@id="column-center"]/div/div/div[4]/div/div[4]/button[1]
 def send_random_message(driver):
     global message_type
     global message_size
@@ -157,7 +172,8 @@ def simulate_random_messages():
 
     while True:
         send_random_message(driver)
-        time.sleep(min(random.expovariate(1/60), 120))  # Random time interval between messages
+        #ActionChains(driver).click(input_box).key_down(Keys.CONTROL).send_keys('a').send_keys(Keys.BACKSPACE).key_up(Keys.CONTROL).send_keys(Keys.ENTER).perform()
+        time.sleep(min(random.expovariate(1/60) + 60, 600))  # Random time interval between messages
 
 # Run the script
 # create a new csv file
