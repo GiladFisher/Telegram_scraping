@@ -90,7 +90,7 @@ def load_random_file_to_clipboard(mean_size):
     file_path = 'random_file.bin'
     while message_size < 0:
         message_size = int(np.random.normal(mean_size, std) * 1024**2)
-
+    print(f"Generating a random file of size {message_size} bytes, in KB: {message_size / 1024}, in MB: {message_size / (1024**2)}")
     with open(file_path, 'wb') as file:
         file.write(os.urandom(message_size))
     command = f"powershell Set-Clipboard -LiteralPath {file_path}"
@@ -100,11 +100,10 @@ def load_random_file_to_clipboard(mean_size):
 def generate_random_message():
     global message_type
     # Define probabilities for each type of message
-    text_prob = 0.29  # Probability of generating a text message
-    image_prob = 0.48 # Probability of generating an image
-    video_prob = 0.15  # Probability of generating a video
-    voice_prob = 0.05 # Probability of generating a voice recording
-    file_prob = 0.02  # Probability of generating
+    text_prob = 0.356  # Probability of generating a text message
+    image_prob = 0.581  # Probability of generating an image
+    video_prob = 0.113  # Probability of generating a video
+    voice_prob = 0.061  # Probability of generating a voice recording
 
     # Generate a random number to determine the type of message
     rand_num = random.random()
@@ -112,26 +111,52 @@ def generate_random_message():
     # Generate and return the corresponding content based on the randomly chosen type
     if rand_num < text_prob:
         message_type = 'text'
-        mean_size = 306.61 / (1024**2)  # 306 B in MB
+        return generate_random_text()
 
     elif rand_num < text_prob + image_prob:
         message_type = 'image'
-        mean_size = 91.33 / (1024)
-
-    elif rand_num < text_prob + image_prob + voice_prob:
-        message_type = 'voice'
-        mean_size = 4.4 # 0.5 MB in bytes
-
-    elif rand_num < text_prob + image_prob + voice_prob + file_prob:
-        message_type = 'file'
-        mean_size = 52.56 / 1024 # 52.56 KB in MB
+        load_random_noise_image_to_clipboard()
+        return None
 
     else:
-        message_type = 'video'
-        mean_size = 35.49 # 35.49 MB
+        message_type = 'voice'
+        load_random_voice_message_to_clipboard()
+        return None
 
-    load_random_file_to_clipboard(mean_size)
-    return None
+
+# # Define probabilities for each type of message
+    # text_prob = 0.29  # Probability of generating a text message
+    # image_prob = 0.48 # Probability of generating an image
+    # video_prob = 0.15  # Probability of generating a video
+    # voice_prob = 0.05 # Probability of generating a voice recording
+    # file_prob = 0.02  # Probability of generating
+    #
+    # # Generate a random number to determine the type of message
+    # rand_num = random.random()
+    #
+    # # Generate and return the corresponding content based on the randomly chosen type
+    # if rand_num < text_prob:
+    #     message_type = 'text'
+    #     mean_size = 306.61 / (1024**2)  # 306 B in MB
+    #
+    # elif rand_num < text_prob + image_prob:
+    #     message_type = 'image'
+    #     mean_size = 91.33 / (1024)
+    #
+    # elif rand_num < text_prob + image_prob + voice_prob:
+    #     message_type = 'voice'
+    #     mean_size = 4.4 # 0.5 MB in bytes
+    #
+    # elif rand_num < text_prob + image_prob + voice_prob + file_prob:
+    #     message_type = 'file'
+    #     mean_size = 52.56 / 1024 # 52.56 KB in MB
+    #
+    # else:
+    #     message_type = 'video'
+    #     mean_size = 35.49 # 35.49 MB
+    #
+    # load_random_file_to_clipboard(mean_size)
+    # return None
 
 def generate_random_text():
     global message_size
